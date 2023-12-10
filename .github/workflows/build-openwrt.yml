@@ -4,7 +4,7 @@ on:
   workflow_dispatch:
     inputs:
       device:
-        description: 'your device, example: ax6s wr30u-stock x86_64_DEVICE_generic'
+        description: 'enter your device, example: ax6s wr30u-stock x86_64_DEVICE_generic'
         required: true
         default: 'ax6s'
 

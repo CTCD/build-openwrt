@@ -1,0 +1,2 @@
+#This includes only the changes compared to the default configuration:
+CONFIG_PACKAGE_luci=y

@@ -1,0 +1,33 @@
+# This script will be executed on first startup.
+#
+# Uncomment lines to apply Configure PPPoE:
+# pppoe_username=""
+# pppoe_password=""
+
+# Configure password
+root_password="root"
+
+# Configure LAN
+lan_ip_address="192.168.31.1"
+
+if [ -n "$root_password" ]; then
+  (
+    echo "$root_password"
+    sleep 1
+    echo "$root_password"
+  ) | passwd >/dev/null
+fi
+
+if [ -n "$lan_ip_address" ]; then
+  uci set network.lan.ipaddr="$lan_ip_address"
+  uci commit network
+fi
+
+if [ -n "$pppoe_username" -a "$pppoe_password" ]; then
+  uci set network.wan.proto=pppoe
+  uci set network.wan.username="$pppoe_username"
+  uci set network.wan.password="$pppoe_password"
+  uci commit network
+fi
+
+echo "All done!"

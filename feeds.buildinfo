@@ -1,0 +1,2 @@
+#This includes only the changes compared to the default configuration:
+#src-git helloworld https://github.com/fw876/helloworld.git

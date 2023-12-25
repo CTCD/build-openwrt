@@ -7,4 +7,5 @@
 ### Difference from official
 1. Lan IP is: **192.168.31.1**
 2. Default WIFI is: **enabled**
-3. Add Chinese language package support
+3. Default password is: **root**
+4. Add **Chinese language** support

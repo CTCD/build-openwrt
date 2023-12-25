@@ -26,13 +26,14 @@ jobs:
     - name: Clone source code
       run: |
         git clone https://github.com/openwrt/openwrt.git && cd openwrt
-        git checkout $(git branch -a | tail -n 1 | awk -F'/' '{print $NF}')
+        git checkout $(git branch -a | tail -n 1 | awk -F'/' '{print $NF}') && cd ..
+        cp -r files openwrt && chmod 755 -R openwrt/files && cat feeds.buildinfo >>openwrt/feeds.conf.default 
 
     - name: Update feeds
       run: cd openwrt && ./scripts/feeds update -a
 
     - name: Install feeds
-      run: cd openwrt && ./scripts/feeds install -a
+      run: cd openwrt && ./scripts/feeds install -a && ./scripts/feeds update -a && ./scripts/feeds install -a
 
     - name: Load custom configuration
       run: |
@@ -42,15 +43,13 @@ jobs:
         fi
         DEVICE_NAME=$(echo $target_device | awk -F "DEVICE_" '{print $2}')
         sed -i 's/disabled=1/disabled=0\n                        set wireless.${name}.country=US/' openwrt/package/kernel/mac80211/files/lib/wifi/mac80211.sh
-        sed -i 's/192.168.1.1/192.168.31.1/' openwrt/package/base-files/files/bin/config_generate
         cat <<EOF >openwrt/.config
         CONFIG_TARGET_$(echo $target_device | awk -F "_" '{print $2}')=y
         CONFIG_TARGET_$(echo $target_device | awk -F "_" '{print $2}')_$(echo $target_device | awk -F "_" '{print $3}')=y
         CONFIG_TARGET_$(echo $target_device | awk -F "_" '{print $2}')_$(echo $target_device | awk -F "_" '{print $3}')_DEVICE_${DEVICE_NAME}=y
-        CONFIG_PACKAGE_luci=y
         CONFIG_LUCI_LANG_zh_Hans=y
         EOF
-        cat openwrt/.config
+        cat config.buildinfo >>openwrt/.config && cat openwrt/.config
         echo "DEVICE_NAME=${DEVICE_NAME}" >> $GITHUB_ENV
 
     - name: Compile ${{ env.DEVICE_NAME }} firmware

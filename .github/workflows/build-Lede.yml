@@ -45,7 +45,7 @@ jobs:
         CONFIG_TARGET_$(echo $target_device | awk -F "_" '{print $2}')=y
         CONFIG_TARGET_$(echo $target_device | awk -F "_" '{print $2}')_$(echo $target_device | awk -F "_" '{print $3}')=y
         CONFIG_TARGET_$(echo $target_device | awk -F "_" '{print $2}')_$(echo $target_device | awk -F "_" '{print $3}')_DEVICE_${DEVICE_NAME}=y
-        CONFIG_PACKAGE_luci-theme-argon=y
+        CONFIG_PACKAGE_luci-theme-argon-mod=y
         EOF
         cat config.buildinfo >>lede/.config && cat lede/.config
         echo "DEVICE_NAME=${DEVICE_NAME}" >> $GITHUB_ENV

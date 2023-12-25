@@ -1,7 +1,7 @@
 ### Usage
 1. Click **[Fork]** and then click **[Create fork]** to copy this project to your Github
 2. Open the copied project and click **[Actions]**
-3. Click **[I understand]** and then click **[Build OpenWrt]**or**[Build Lede]**
+3. Click **[I understand]** and then click **[Build OpenWrt]** or **[Build Lede]**
 4. Enter your device and click **[Run workflow]**
 
 ### Difference from official

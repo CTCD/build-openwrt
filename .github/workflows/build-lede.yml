@@ -1,4 +1,5 @@
 name: Build LEDE
+run-name: ${{ inputs.device }}
 
 on:
   workflow_dispatch:

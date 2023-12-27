@@ -1,0 +1,64 @@
+name: Build ImmortalWrt
+run-name: ${{ inputs.device }}
+
+on:
+  workflow_dispatch:
+    inputs:
+      device:
+        description: 'enter your device, example: ax6s wr30u-stock x86_64_DEVICE_generic'
+        required: true
+        default: 'ax6s'
+
+jobs:
+  build:
+    runs-on: ubuntu-22.04
+
+    steps:
+    - name: Checkout
+      uses: actions/checkout@main
+
+    - name: Initialization environment
+      run: |
+        sudo apt update
+        sudo apt -y install build-essential clang flex bison g++ gawk \
+        gcc-multilib g++-multilib gettext git libncurses-dev libssl-dev \
+        python3-distutils rsync unzip zlib1g-dev file wget
+
+    - name: Clone source code
+      run: |
+        git clone https://github.com/immortalwrt/immortalwrt.git && cd immortalwrt
+        git checkout $(git branch -a | tail -n 1 | awk -F'/' '{print $NF}') && cd ..
+        cp -r files immortalwrt && chmod 755 -R immortalwrt/files && cat feeds.buildinfo >>immortalwrt/feeds.conf.default 
+
+    - name: Update feeds
+      run: cd immortalwrt && ./scripts/feeds update -a
+
+    - name: Install feeds
+      run: cd immortalwrt && ./scripts/feeds install -a && ./scripts/feeds update -a && ./scripts/feeds install -a
+
+    - name: Load custom configuration
+      run: |
+        if ! target_device=$(grep -m 1 "^config TARGET_.*$(echo ${{ inputs.device }} | xargs)" immortalwrt/tmp/.config-target.in); then
+          echo "Error: The ${{ inputs.device }} device you input does not exist!"
+          exit 1
+        fi
+        DEVICE_NAME=$(echo $target_device | awk -F "DEVICE_" '{print $2}')
+        sed -i 's/disabled=1/disabled=0\n                        set wireless.${name}.country=US/' immortalwrt/package/kernel/mac80211/files/lib/wifi/mac80211.sh
+        cat <<EOF >immortalwrt/.config
+        CONFIG_TARGET_$(echo $target_device | awk -F "_" '{print $2}')=y
+        CONFIG_TARGET_$(echo $target_device | awk -F "_" '{print $2}')_$(echo $target_device | awk -F "_" '{print $3}')=y
+        CONFIG_TARGET_$(echo $target_device | awk -F "_" '{print $2}')_$(echo $target_device | awk -F "_" '{print $3}')_DEVICE_${DEVICE_NAME}=y
+        CONFIG_LUCI_LANG_zh_Hans=y
+        EOF
+        cat config.buildinfo >>immortalwrt/.config && cat immortalwrt/.config
+        echo "DEVICE_NAME=${DEVICE_NAME}" >> $GITHUB_ENV
+
+    - name: Compile ${{ env.DEVICE_NAME }} firmware
+      run: cd immortalwrt && make -j$(nproc) defconfig download clean world
+
+    - name: Upload firmware to workflow directory
+      uses: actions/upload-artifact@main
+      with:
+        name: ${{ env.DEVICE_NAME }}-squashfs
+        path: immortalwrt/bin/targets/*/*/*squashfs*
+        
